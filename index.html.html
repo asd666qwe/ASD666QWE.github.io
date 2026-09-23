@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>仙途·万界纪元 | 作者：猫仙人</title>
+<style>
+:root {
+  --gold: #d4a843; --gold-light: #f0d68a; --gold-dark: #8b6914;
+  --bg-primary: #0a0a0f; --bg-secondary: #12121a; --bg-tertiary: #1a1a2e; --bg-card: #16162a;
+  --text-primary: #e8e0d0; --text-secondary: #a89880; --text-dim: #666;
+  --red: #c0392b; --blue: #2980b9; --green: #27ae60; --purple: #8e44ad; --pink: #e91e63;
+  --border-gold: rgba(212,168,67,0.3); --shadow-gold: 0 0 20px rgba(212,168,67,0.15); --glow-gold: 0 0 10px rgba(212,168,67,0.5);
+  --nav-height: 56px;
+  --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg-primary); color: var(--text-primary);
+  min-height: 100vh; min-height: 100dvh; overflow-x: hidden;
+  padding-top: calc(var(--nav-height) + var(--safe-top)); padding-bottom: var(--safe-bottom);
+  font-size: clamp(14px, 2.5vw, 16px);
+}
+#particles-bg { position: fixed; inset:0; z-index: 0; pointer-events: none; }
+.particle { position: absolute; background: var(--gold); border-radius: 50%; animation: floatParticle linear infinite; opacity: 0; }
+@keyframes floatParticle { 0%{opacity:0;transform:translateY(100vh) scale(0)} 10%{opacity:0.6} 90%{opacity:0.2} 100%{opacity:0;transform:translateY(-10vh) scale(1.5)} }
+
+#loading-screen { position: fixed; inset:0; background: var(--bg-primary); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; transition: opacity 0.8s ease; }
+#loading-screen.hidden { opacity:0; pointer-events:none; }
+.loading-title { font-size: clamp(1.8em, 5vw, 3em); color: var(--gold); text-shadow: var(--glow-gold); animation: pulse 2s ease-in-out infinite; margin-bottom: 30px; }
+.loading-bar-container { width: min(300px, 80vw); height: 4px; background: var(--bg-tertiary); border-radius: 2px; overflow: hidden; }
+.loading-bar { height: 100%; background: linear-gradient(90deg, var(--gold-dark), var(--gold), var(--gold-light)); width: 0%; transition: width 0.3s ease; }
+.loading-text { margin-top: 15px; color: var(--text-secondary); font-size: 0.85em; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.7;transform:scale(1.02)} }
+
+#navbar { position: fixed; top:0; left:0; width:100%; height: calc(var(--nav-height) + var(--safe-top)); padding-top: var(--safe-top); background: linear-gradient(180deg, rgba(10,10,15,0.98), rgba(10,10,15,0.92)); border-bottom: 1px solid var(--border-gold); display: flex; align-items: center; padding-left: 16px; padding-right: 16px; z-index: 1000; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.nav-brand { font-size: clamp(1em, 3vw, 1.3em); color: var(--gold); font-weight: bold; text-shadow: var(--glow-gold); white-space: nowrap; }
+.nav-author { font-size: 0.7em; color: var(--text-secondary); margin-left: 8px; white-space: nowrap; }
+.nav-spacer { flex:1; }
+.nav-links { display: flex; gap: 4px; }
+.nav-link { padding: 8px 14px; color: var(--text-secondary); cursor: pointer; border-radius: 6px; transition: all 0.3s ease; font-size: 0.85em; border: 1px solid transparent; white-space: nowrap; min-height: 44px; display: flex; align-items: center; }
+.nav-link:hover, .nav-link.active { color: var(--gold); background: rgba(212,168,67,0.12); border-color: var(--border-gold); }
+.nav-link.active { text-shadow: var(--glow-gold); border-color: var(--gold); }
+.hamburger { display: none; width: 44px; height: 44px; border: none; background: none; cursor: pointer; padding: 10px; flex-direction: column; justify-content: center; gap: 5px; }
+.hamburger span { display: block; width: 24px; height: 2px; background: var(--gold); border-radius: 1px; transition: all 0.3s ease; }
+.hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+.mobile-menu { display: none; position: fixed; top: calc(var(--nav-height) + var(--safe-top)); left: 0; width: 100%; background: rgba(10,10,15,0.98); border-bottom: 1px solid var(--border-gold); backdrop-filter: blur(12px); z-index: 999; padding: 10px; flex-direction: column; gap: 4px; animation: slideDown 0.3s ease; }
+.mobile-menu.show { display: flex; }
+.mobile-menu .nav-link { width: 100%; justify-content: center; padding: 14px; font-size: 1em; }
+@keyframes slideDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+
+#music-player { position: fixed; bottom: calc(16px + var(--safe-bottom)); right: 16px; background: rgba(22,22,42,0.95); border: 1px solid var(--border-gold); border-radius: 12px; padding: 10px 14px; z-index: 998; backdrop-filter: blur(10px); box-shadow: var(--shadow-gold); min-width: 200px; max-width: calc(100vw - 32px); }
+.music-title { font-size: 0.75em; color: var(--gold); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.music-controls { display: flex; align-items: center; gap: 6px; }
+.music-btn { width: 36px; height: 36px; min-width: 36px; border-radius: 50%; border: 1px solid var(--border-gold); background: var(--bg-tertiary); color: var(--gold); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85em; }
+.music-progress { flex:1; height: 4px; background: var(--bg-tertiary); border-radius: 2px; cursor: pointer; min-width: 40px; }
+.music-progress-fill { height:100%; background: var(--gold); border-radius: 2px; width:0%; }
+.music-volume { width: 50px; height: 4px; -webkit-appearance: none; background: var(--bg-tertiary); border-radius: 2px; outline: none; }
+.music-volume::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--gold); cursor: pointer; }
+.music-track-name { font-size: 0.65em; color: var(--text-secondary); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.music-toggle { display: none; position: fixed; bottom: calc(16px + var(--safe-bottom)); right: 16px; width: 48px; height: 48px; border-radius: 50%; background: rgba(22,22,42,0.95); border: 1px solid var(--border-gold); color: var(--gold); font-size: 1.2em; z-index: 998; cursor: pointer; align-items: center; justify-content: center; box-shadow: var(--shadow-gold); }
+
+#main-content { padding: clamp(12px, 3vw, 20px); max-width: 1400px; margin: 0 auto; position: relative; z-index: 1; min-height: calc(100dvh - var(--nav-height) - var(--safe-top) - var(--safe-bottom)); }
+.page { display: none; animation: fadeIn 0.4s ease; }
+.page.active { display: block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(15px)} to{opacity:1;transform:translateY(0)} }
+
+.card { background: var(--bg-card); border: 1px solid var(--border-gold); border-radius: 12px; padding: clamp(16px, 3vw, 24px); margin-bottom: 16px; position: relative; overflow: hidden; }
+.card::before { content:''; position: absolute; top:0; left:0; width:100%; height:2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); opacity:0; transition: opacity 0.3s ease; }
+.card:hover::before { opacity:1; }
+.card-title { font-size: clamp(1.1em, 3vw, 1.4em); color: var(--gold); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.card-title::before { content:'◆'; font-size:0.7em; color:var(--gold-dark); }
+
+.world-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 12px; }
+.realm-item, .sect-item, .family-item { background: var(--bg-tertiary); border: 1px solid var(--border-gold); border-radius: 8px; padding: 14px; cursor: pointer; transition: all 0.3s ease; min-height: 44px; }
+.realm-item:hover, .sect-item:hover, .family-item:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: var(--shadow-gold); }
+.realm-level { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75em; margin-right: 6px; }
+.realm-fan { background: rgba(46,204,113,0.2); color: #2ecc71; border:1px solid rgba(46,204,113,0.3); }
+.realm-ling { background: rgba(52,152,219,0.2); color: #3498db; border:1px solid rgba(52,152,219,0.3); }
+.realm-xian { background: rgba(155,89,182,0.2); color: #9b59b6; border:1px solid rgba(155,89,182,0.3); }
+.realm-dao { background: rgba(212,168,67,0.2); color: var(--gold); border:1px solid rgba(212,168,67,0.3); }
+
+.modal-overlay { position: fixed; inset:0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 5000; backdrop-filter: blur(5px); padding: 20px; }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--bg-secondary); border: 1px solid var(--gold); border-radius: 16px; padding: clamp(20px, 4vw, 30px); max-width: 700px; width: 100%; max-height: 80vh; overflow-y: auto; position: relative; box-shadow: 0 0 40px rgba(212,168,67,0.2); }
+.modal-close { position: absolute; top:12px; right:12px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border-gold); background: var(--bg-tertiary); color: var(--gold); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1em; }
+.modal h2 { color: var(--gold); margin-bottom: 12px; font-size: clamp(1.2em, 3.5vw, 1.5em); }
+.modal p { color: var(--text-primary); line-height: 1.8; margin-bottom: 8px; }
+.modal .tag { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.8em; margin: 3px; }
+
+.char-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(160px, 100%), 1fr)); gap: 12px; }
+.char-card { background: var(--bg-card); border: 1px solid var(--border-gold); border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.4s ease; position: relative; }
+.char-card:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 8px 25px rgba(212,168,67,0.2); border-color: var(--gold); }
+.char-card-img { width:100%; aspect-ratio: 4/5; object-fit: cover; border-bottom: 2px solid var(--border-gold); display:flex; align-items:center; justify-content:center; font-size:2em; }
+.char-card-info { padding: 10px; }
+.char-card-name { font-size: 1em; color: var(--gold); margin-bottom: 3px; }
+.char-card-title { font-size: 0.75em; color: var(--text-secondary); }
+.char-card-type { position: absolute; top:8px; right:8px; padding: 2px 8px; border-radius: 10px; font-size: 0.65em; backdrop-filter: blur(5px); }
+.type-female { background: rgba(231,76,60,0.7); color:white; }
+.type-male { background: rgba(52,152,219,0.7); color:white; }
+.type-npc { background: rgba(149,165,166,0.7); color:white; }
+
+#game-container { display: grid; grid-template-columns: 260px 1fr 260px; gap: 12px; min-height: calc(100dvh - var(--nav-height) - var(--safe-top) - var(--safe-bottom) - 40px); }
+.game-sidebar { background: var(--bg-card); border: 1px solid var(--border-gold); border-radius: 12px; padding: 14px; overflow-y: auto; }
+.game-main { background: var(--bg-card); border: 1px solid var(--border-gold); border-radius: 12px; padding: clamp(14px, 3vw, 20px); overflow-y: auto; position: relative; }
+.game-mobile-tabs { display: none; gap: 4px; margin-bottom: 10px; }
+.game-mobile-tab { flex:1; padding: 10px; background: var(--bg-tertiary); border: 1px solid var(--border-gold); border-radius: 8px; color: var(--text-secondary); text-align: center; cursor: pointer; font-size: 0.85em; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+.game-mobile-tab.active { background: rgba(212,168,67,0.15); color: var(--gold); border-color: var(--gold); }
+.game-panel { display: block; }
+.stat-bar { margin-bottom: 10px; }
+.stat-label { display: flex; justify-content: space-between; font-size: 0.78em; color: var(--text-secondary); margin-bottom: 3px; }
+.stat-track { height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden; }
+.stat-fill { height:100%; border-radius: 3px; transition: width 0.5s ease; }
+.stat-hp .stat-fill { background: linear-gradient(90deg, #c0392b, #e74c3c); }
+.stat-mp .stat-fill { background: linear-gradient(90deg, #2980b9, #3498db); }
+.stat-exp .stat-fill { background: linear-gradient(90deg, var(--gold-dark), var(--gold)); }
+.stat-life .stat-fill { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+.stat-yandere .stat-fill { background: linear-gradient(90deg, #8e44ad, #c0392b, #000); animation: yanderePulse 2s infinite; }
+@keyframes yanderePulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+
+.game-narrative { line-height: 1.9; color: var(--text-primary); margin-bottom: 16px; padding: 14px; background: rgba(0,0,0,0.3); border-radius: 8px; border-left: 3px solid var(--gold); min-height: 150px; white-space: pre-wrap; font-size: clamp(0.9em, 2.5vw, 1em); }
+.game-narrative .highlight { color: var(--gold); font-weight: bold; }
+.game-narrative .dialogue { color: #e8d5b7; font-style: italic; }
+.game-narrative .action { color: #87ceeb; }
+.game-narrative .thought { color: #b8b8b8; font-style: italic; }
+.game-narrative .yandere { color: #e74c3c; font-weight: bold; text-shadow: 0 0 5px rgba(231,76,60,0.5); }
+
+.choices-container { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.choice-btn { padding: 14px 16px; background: var(--bg-tertiary); border: 1px solid var(--border-gold); border-radius: 8px; color: var(--text-primary); cursor: pointer; transition: all 0.3s ease; text-align: left; font-size: clamp(0.85em, 2.3vw, 0.95em); line-height: 1.5; position: relative; overflow: hidden; min-height: 48px; display: flex; align-items: center; }
+.choice-btn::before { content:''; position: absolute; left:0; top:0; width:3px; height:100%; background: var(--gold); opacity:0; transition: opacity 0.3s ease; }
+.choice-btn:hover, .choice-btn:active { border-color: var(--gold); background: rgba(212,168,67,0.1); transform: translateX(3px); }
+.choice-btn:hover::before, .choice-btn:active::before { opacity:1; }
+.choice-tag { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 0.7em; margin-right: 8px; white-space: nowrap; }
+.tag-lick { background: rgba(231,76,60,0.3); color: #e74c3c; }
+.tag-cold { background: rgba(52,152,219,0.3); color: #3498db; }
+.tag-smart { background: rgba(46,204,113,0.3); color: #2ecc71; }
+.tag-crazy { background: rgba(155,89,182,0.3); color: #9b59b6; }
+.tag-chill { background: rgba(149,165,166,0.3); color: #95a5a6; }
+.tag-custom { background: rgba(212,168,67,0.3); color: var(--gold); }
+.tag-yandere { background: rgba(192,57,43,0.4); color: #ff7675; border: 1px solid #c0392b; }
+.custom-input-container { display: flex; gap: 8px; margin-top: 10px; }
+.custom-input { flex:1; padding: 12px 14px; background: var(--bg-tertiary); border: 1px solid var(--border-gold); border-radius: 8px; color: var(--text-primary); font-size: 0.95em; outline: none; min-height: 44px; }
+.custom-input:focus { border-color: var(--gold); }
+.custom-submit { padding: 12px 18px; background: rgba(212,168,67,0.2); border: 1px solid var(--gold); border-radius: 8px; color: var(--gold); cursor: pointer; white-space: nowrap; min-height: 44px; }
+
+#danmaku-container { position: fixed; top: calc(var(--nav-height) + var(--safe-top)); left:0; width:100%; height: calc(100% - var(--nav-height) - var(--safe-top)); pointer-events: none; z-index: 500; overflow: hidden; }
+.danmaku { position: absolute; white-space: nowrap; font-size: clamp(0.7em, 2vw, 0.85em); padding: 3px 8px; border-radius: 4px; background: rgba(0,0,0,0.4); animation: danmakuMove linear forwards; }
+@keyframes danmakuMove { from{transform:translateX(100vw)} to{transform:translateX(-100%)} }
+.danmaku-panel { background: var(--bg-tertiary); border: 1px solid var(--border-gold); border-radius: 8px; padding: 8px; max-height: 250px; overflow-y: auto; }
+.danmaku-item { padding: 5px 8px; border-bottom: 1px solid rgba(212,168,67,0.1); font-size: 0.78em; color: var(--text-secondary); line-height: 1.5; }
+.danmaku-item:last-child { border-bottom: none; }
+.danmaku-user { color: var(--gold); font-weight: bold; margin-right: 4px; }
+
+#map-container { position: relative; width:100%; aspect-ratio: 16/10; min-height: 300px; background: var(--bg-tertiary); border: 1px solid var(--border-gold); border-radius: 12px; overflow: hidden; touch-action: pan-x pan-y; }
+.map-point { position: absolute; width: 16px; height: 16px; border-radius: 50%; background: var(--gold); cursor: pointer; animation: mapPulse 2s ease-in-out infinite; transform: translate(-50%, -50%); }
+.map-point:hover, .map-point:active { transform: translate(-50%, -50%) scale(1.8); box-shadow: 0 0 15px var(--gold); }
+.map-point-label { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 0.7em; color: var(--gold); background: rgba(0,0,0,0.8); padding: 2px 6px; border-radius: 3px; opacity:0; transition: opacity 0.3s ease; pointer-events: none; margin-bottom: 4px; }
+.map-point:hover .map-point-label, .map-point:active .map-point-label { opacity:1; }
+@keyframes mapPulse { 0%,100%{box-shadow:0 0 5px var(--gold)} 50%{box-shadow:0 0 12px var(--gold)} }
+.map-bg-text { position: absolute; color: rgba(212,168,67,0.15); pointer-events: none; }
+
+.save-slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: 12px; }
+.save-slot { background: var(--bg-tertiary); border: 1px solid var(--border-gold); border-radius: 8px; padding: 14px; cursor: pointer; min-height: 44px; }
+.save-slot-empty { color: var(--text-dim); font-style: italic; text-align: center; padding: 16px; }
+.save-slot-info { font-size: 0.82em; color: var(--text-secondary); }
+.save-slot-info strong { color: var(--gold); display: block; margin-bottom: 4px; }
+
+.password-modal { text-align: center; }
+.password-input { padding: 12px 20px; background: var(--bg-tertiary); border: 2px solid var(--border-gold); border-radius: 8px; color: var(--gold); font-size: 1.2em; text-align: center; letter-spacing: 5px; width: min(200px, 60vw); margin: 20px auto; display: block; outline: none; min-height: 48px; }
+.dev-section { background: var(--bg-card); border: 1px solid var(--border-gold); border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+.dev-section h3 { color: var(--gold); margin-bottom: 8px; font-size: 1em; }
+.dev-input, .dev-textarea, .dev-select { width:100%; padding: 10px; background: var(--bg-tertiary); border: 1px solid var(--border-gold); border-radius: 6px; color: var(--text-primary); font-family: monospace; font-size: 0.85em; margin-bottom: 8px; min-height: 44px; }
+.dev-textarea { min-height: 150px; resize: vertical; }
+.dev-btn { padding: 10px 18px; background: rgba(212,168,67,0.2); border: 1px solid var(--gold); border-radius: 6px; color: var(--gold); cursor: pointer; margin-right: 8px; margin-bottom: 4px; min-height: 44px; display: inline-flex; align-items: center; font-size: 0.9em; }
+
+.tab-buttons { display: flex; gap: 4px; border-bottom: 1px solid var(--border-gold); padding-bottom: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.tab-btn { padding: 8px 14px; background: transparent; border: 1px solid var(--border-gold); border-radius: 6px; color: var(--text-secondary); cursor: pointer; font-size: 0.82em; min-height: 40px; }
+.tab-btn.active, .tab-btn:hover { background: rgba(212,168,67,0.15); color: var(--gold); border-color: var(--gold); }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+.notification { position: fixed; top: calc(var(--nav-height) + var(--safe-top) + 10px); left: 50%; transform: translateX(-50%); padding: 12px 20px; background: var(--bg-card); border: 1px solid var(--gold); border-radius: 8px; color: var(--gold); z-index: 6000; animation: notifyIn 0.3s ease, fadeOut 0.5s ease 2.5s forwards; box-shadow: var(--shadow-gold); max-width: calc(100vw - 32px); text-align: center; font-size: 0.9em; }
+@keyframes notifyIn { from{opacity:0;transform:translateX(-50%) translateY(-20px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+@keyframes fadeOut { to{opacity:0;transform:translateX(-50%) translateY(-10px)} }
+
+.affection-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(212,168,67,0.1); }
+.affection-info { flex:1; }
+.affection-name { font-size: 0.82em; color: var(--text-primary); }
+.affection-bar { height: 4px; background: var(--bg-tertiary); border-radius: 2px; margin-top: 3px; overflow: hidden; }
+.affection-fill { height:100%; background: linear-gradient(90deg, #e74c3c, #f39c12, #2ecc71); border-radius: 2px; transition: width 0.5s ease; }
+.game-time-display { text-align: center; padding: 8px; background: rgba(212,168,67,0.05); border-radius: 8px; margin-bottom: 12px; border: 1px solid var(--border-gold); }
+.game-time-display .time { font-size: 1.3em; color: var(--gold); font-weight: bold; }
+.game-time-display .date { font-size: 0.8em; color: var(--text-secondary); margin-top: 2px; }
+.game-time-display .season { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.72em; margin-top: 4px; }
+.shimmer { background: linear-gradient(90deg, var(--gold-dark), var(--gold-light), var(--gold-dark)); background-size: 200% 100%; animation: shimmer 3s linear infinite; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+
+/* ============ 师徒系统专属样式 ============ */
+.disciple-card {
+  background: var(--bg-tertiary); border: 1px solid var(--border-gold); border-radius: 12px;
+  padding: 16px; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;
+}
+.disciple-card:hover { border-color: var(--gold); box-shadow: var(--shadow-gold); }
+.disciple-card.yandere-active { border-color: #c0392b; box-shadow: 0 0 20px rgba(192,57,43,0.4); animation: yanderePulse 2s infinite; }
+.disciple-avatar {
+  width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--gold);
+  display: flex; align-items: center; justify-content: center; font-size: 1.5em;
+  background: var(--bg-card); flex-shrink: 0;
+}
+.disciple-header { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+.disciple-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.85em; }
+.interact-btn {
+  padding: 10px; background: var(--bg-card); border: 1px solid var(--border-gold); border-radius: 8px;
+  color: var(--text-primary); cursor: pointer; text-align: center; transition: all 0.3s; min-height: 44px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+}
+.interact-btn:hover { background: rgba(212,168,67,0.15); border-color: var(--gold); }
+.interact-btn .icon { font-size: 1.2em; }
+.interact-btn .label { font-size: 0.75em; color: var(--text-secondary); }
+
+.cp-tag {
+  display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.7em; font-weight: bold;
+  margin-left: 5px;
+}
+.cp-bg { background: rgba(231,76,60,0.2); color: #e74c3c; border: 1px solid #e74c3c; }
+.cp-gb { background: rgba(155,89,182,0.2); color: #9b59b6; border: 1px solid #9b59b6; }
+.cp-bl { background: rgba(52,152,219,0.2); color: #3498db; border: 1px solid #3498db; }
+.cp-gl { background: rgba(233,30,99,0.2); color: #e91e63; border: 1px solid #e91e63; }
+
+/* 响应式 */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 3px; }
+
+@media (max-width: 1024px) {
+  #game-container { grid-template-columns: 1fr; min-height: auto; }
+  .game-mobile-tabs { display: flex; }
+  #game-left, #game-right { display: none; }
+  #game-left.mobile-active, #game-right.mobile-active { display: block; }
+  #game-center { display: block; }
+  #game-center:not(.mobile-active) { display: none; }
+}
+@media (max-width: 768px) {
+  :root { --nav-height: 50px; }
+  .nav-links { display: none !important; }
+  .hamburger { display: flex; }
+  .world-grid { grid-template-columns: 1fr; }
+  .char-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .save-slots { grid-template-columns: 1fr 1fr; }
+  #music-player { display: none; bottom: calc(70px + var(--safe-bottom)); right: 10px; left: 10px; min-width: auto; }
+  #music-player.mobile-show { display: block; }
+  .music-toggle { display: flex; }
+  .custom-input-container { flex-direction: column; }
+  .custom-submit { width: 100%; text-align: center; justify-content: center; }
+  .dev-btn { width: 100%; justify-content: center; margin-right: 0; }
+  .disciple-stats { grid-template-columns: 1fr; }
+}
+@media (max-width: 400px) {
+  .char-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .save-slots { grid-template-columns: 1fr; }
+  .tab-buttons { gap: 3px; }
+  .tab-btn { padding: 6px 10px; font-size: 0.78em; flex:1; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<div id="particles-bg"></div>
+
+<div id="loading-screen">
+  <div class="loading-title shimmer">仙途·万界纪元</div>
+  <div class="loading-bar-container"><div class="loading-bar" id="loading-bar"></div></div>
+  <div class="loading-text" id="loading-text">正在凝聚灵气...</div>
+</div>
+
+<nav id="navbar">
+  <span class="nav-brand">仙途·万界纪元</span>
+  <span class="nav-author">作者：猫仙人</span>
+  <div class="nav-spacer"></div>
+  <div class="nav-links">
+    <div class="nav-link active" data-page="world">世界观</div>
+    <div class="nav-link" data-page="gallery">图鉴</div>
+    <div class="nav-link" data-page="map">地图</div>
+    <div class="nav-link" data-page="game">仙途</div>
+    <div class="nav-link" data-page="disciple">洞府</div>
+    <div class="nav-link" data-page="save">存档</div>
+    <div class="nav-link" data-page="dev">开发者</div>
+  </div>
+  <button class="hamburger" id="hamburger-btn" aria-label="菜单"><span></span><span></span><span></span></button>
+</nav>
+
+<div class="mobile-menu" id="mobile-menu">
+  <div class="nav-link active" data-page="world">🌍 世界观</div>
+  <div class="nav-link" data-page="gallery">📖 图鉴</div>
+  <div class="nav-link" data-page="map">🗺️ 地图</div>
+  <div class="nav-link" data-page="game">⚔️ 踏入仙途</div>
+  <div class="nav-link" data-page="disciple">🏯 洞府(师徒)</div>
+  <div class="nav-link" data-page="save">💾 存档</div>
+  <div class="nav-link" data-page="dev">🔧 开发者</div>
+</div>
+
+<div id="danmaku-container"></div>
+
+<div id="main-content">
+  <!-- 世界观 -->
+  <div class="page active" id="page-world">
+    <div class="card"><div class="card-title">万界总纲</div><p style="line-height:2; color:var(--text-secondary);">万界之初，混沌未分...（略，同前版）</p></div>
+    <div class="card"><div class="card-title">修为境界</div><div class="tab-container"><div class="tab-buttons"><div class="tab-btn active" data-tab="realm-fan">凡界</div><div class="tab-btn" data-tab="realm-ling">灵界</div><div class="tab-btn" data-tab="realm-xian">仙界</div></div><div class="tab-content active" id="realm-fan"><div class="world-grid" id="realm-fan-grid"></div></div><div class="tab-content" id="realm-ling"><div class="world-grid" id="realm-ling-grid"></div></div><div class="tab-content" id="realm-xian"><div class="world-grid" id="realm-xian-grid"></div></div></div></div>
+    <div class="card"><div class="card-title">四大家族</div><div class="world-grid" id="family-grid"></div></div>
+    <div class="card"><div class="card-title">宗门势力</div><div class="tab-container"><div class="tab-buttons"><div class="tab-btn active" data-tab="sect-top">顶级</div><div class="tab-btn" data-tab="sect-first">一品</div><div class="tab-btn" data-tab="sect-second">二品</div><div class="tab-btn" data-tab="sect-third">三品</div></div><div class="tab-content active" id="sect-top"><div class="world-grid" id="sect-top-grid"></div></div><div class="tab-content" id="sect-first"><div class="world-grid" id="sect-first-grid"></div></div><div class="tab-content" id="sect-second"><div class="world-grid" id="sect-second-grid"></div></div><div class="tab-content" id="sect-third"><div class="world-grid" id="sect-third-grid"></div></div></div></div>
+  </div>
+
+  <!-- 图鉴 -->
+  <div class="page" id="page-gallery">
+    <div class="card"><div class="card-title">角色图鉴</div><div class="tab-container"><div class="tab-buttons"><div class="tab-btn active" data-tab="char-female">女主(10)</div><div class="tab-btn" data-tab="char-male">男主(3)</div><div class="tab-btn" data-tab="char-npc">配角</div></div><div class="tab-content active" id="char-female"><div class="char-grid" id="female-grid"></div></div><div class="tab-content" id="char-male"><div class="char-grid" id="male-grid"></div></div><div class="tab-content" id="char-npc"><div class="char-grid" id="npc-grid"></div></div></div></div>
+  </div>
+
+  <!-- 地图 -->
+  <div class="page" id="page-map">
+    <div class="card"><div class="card-title">万界舆图</div><div id="map-container"><div class="map-bg-text" style="top:15px;left:15px;font-size:clamp(0.8em,2vw,1.2em);">凡界·天玄大陆</div></div></div>
+  </div>
+
+  <!-- 游戏 -->
+  <div class="page" id="page-game">
+    <div class="game-mobile-tabs">
+      <div class="game-mobile-tab" data-panel="game-left">📊 状态</div>
+      <div class="game-mobile-tab active" data-panel="game-center">📜 剧情</div>
+      <div class="game-mobile-tab" data-panel="game-right">💬 弹幕</div>
+    </div>
+    <div id="game-container">
+      <div class="game-sidebar game-panel" id="game-left">
+        <div class="game-time-display"><div class="time" id="game-time">辰时</div><div class="date" id="game-date">天元历1024年 春</div><div class="season" id="game-season">春</div></div>
+        <h4 style="color:var(--gold);margin-bottom:8px;font-size:0.95em;">◈ 属性</h4>
+        <div id="player-stats"></div>
+        <hr style="border-color:var(--border-gold);margin:12px 0;">
+        <h4 style="color:var(--gold);margin-bottom:8px;font-size:0.95em;">◈ 好感</h4>
+        <div id="affection-panel"></div>
+      </div>
+      <div class="game-main game-panel mobile-active" id="game-center">
+        <div id="game-start-screen" style="text-align:center;padding:clamp(30px,5vw,60px) 16px;">
+          <h1 class="shimmer" style="font-size:clamp(1.8em,5vw,2.5em);margin-bottom:16px;">踏入仙途</h1>
+          <p style="color:var(--text-secondary);line-height:2;max-width:500px;margin:0 auto 24px;">修仙之路，道阻且长。<br>支持全性向（BG/BL/GL/GB），你的选择决定命运。</p>
+          <div style="margin-bottom:16px;"><label style="color:var(--text-secondary);font-size:0.85em;display:block;margin-bottom:6px;">角色姓名</label><input type="text" class="custom-input" id="player-name-input" placeholder="请输入名字" style="width:min(250px,100%);display:inline-block;"></div>
+          <div style="margin-bottom:16px;"><label style="color:var(--text-secondary);font-size:0.85em;display:block;margin-bottom:6px;">性别</label><select class="dev-select" id="player-gender" style="width:min(150px,100%);display:inline-block;"><option value="male">男</option><option value="female">女</option></select></div>
+          <div style="margin-bottom:16px;"><label style="color:var(--text-secondary);font-size:0.85em;display:block;margin-bottom:6px;">性向偏好 (影响收徒与奇遇)</label><select class="dev-select" id="player-orientation" style="width:min(200px,100%);display:inline-block;"><option value="bg">BG (男女)</option><option value="bl">BL (男男)</option><option value="gl">GL (女女)</option><option value="gb">GB (女攻男受)</option><option value="all">全都要 (海王)</option></select></div>
+          <div style="margin-bottom:24px;"><label style="color:var(--text-secondary);font-size:0.85em;display:block;margin-bottom:6px;">灵根</label><select class="dev-select" id="player-root" style="width:min(250px,100%);display:inline-block;"><option value="single-fire">单灵根·火</option><option value="dual">双灵根</option><option value="triple" selected>三灵根</option><option value="penta">五灵根·废材流</option></select></div>
+          <button class="dev-btn" onclick="startGame()" style="font-size:1.05em;padding:14px 36px;width:auto;justify-content:center;">⚔ 踏入仙途 ⚔</button>
+        </div>
+        <div id="game-play-area" style="display:none;">
+          <div class="game-narrative" id="game-narrative"></div>
+          <div class="choices-container" id="choices-container"></div>
+          <div class="custom-input-container" id="custom-input-area" style="display:none;"><input type="text" class="custom-input" id="custom-answer-input" placeholder="自由输入..."><button class="custom-submit" onclick="submitCustomAnswer()">发送</button></div>
+        </div>
+      </div>
+      <div class="game-sidebar game-panel" id="game-right">
+        <h4 style="color:var(--gold);margin-bottom:8px;font-size:0.95em;">◈ 天道弹幕</h4>
+        <div class="danmaku-panel" id="danmaku-panel"></div>
+        <hr style="border-color:var(--border-gold);margin:12px 0;">
+        <h4 style="color:var(--gold);margin-bottom:8px;font-size:0.95em;">◈ 日志</h4>
+        <div id="event-log" style="font-size:0.78em;color:var(--text-secondary);max-height:200px;overflow-y:auto;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 洞府(师徒)页面 ========== -->
+  <div class="page" id="page-disciple">
+    <div class="card">
+      <div class="card-title">洞府 · 师徒羁绊</div>
+      <p style="color:var(--text-secondary);margin-bottom:15px;font-size:0.9em;">
+        修仙漫漫，不如收个徒弟解闷。<br>
+        <span style="color:var(--red);">⚠ 警告：请谨慎处理师徒关系。若徒弟「病娇值」过高，可能会触发不可逆的「小黑屋」结局。</span>
+      </p>
+      <div class="tab-container">
+        <div class="tab-buttons">
+          <div class="tab-btn active" data-tab="disciple-recruit">寻访收徒</div>
+          <div class="tab-btn" data-tab="disciple-manage">我的徒弟</div>
+        </div>
+        <div class="tab-content active" id="disciple-recruit">
+          <div class="world-grid" id="recruit-grid"></div>
+        </div>
+        <div class="tab-content" id="disciple-manage">
+          <div id="my-disciples-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 存档 -->
+  <div class="page" id="page-save">
+    <div class="card">
+      <div class="card-title">存档管理</div>
+      <div style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:6px;">
+        <button class="dev-btn" onclick="quickSave()">⚡ 快速存档</button>
+        <button class="dev-btn" onclick="quickLoad()">📂 快速读档</button>
+        <button class="dev-btn" onclick="exportSave()">📤 导出</button>
+        <button class="dev-btn" onclick="importSave()">📥 导入</button>
+      </div>
+      <div class="save-slots" id="save-slots"></div>
+    </div>
+  </div>
+
+  <!-- 开发者 -->
+  <div class="page" id="page-dev">
+    <div class="card" id="dev-login-card">
+      <div class="card-title">开发者模式</div>
+      <div class="password-modal">
+        <p style="color:var(--text-secondary);margin-bottom:12px;">请输入开发者密码</p>
+        <input type="password" class="password-input" id="dev-password" placeholder="******" maxlength="6" inputmode="numeric">
+        <br><button class="dev-btn" onclick="devLogin()" style="margin:0 auto;display:inline-flex;">进入</button>
+      </div>
+    </div>
+    <div id="dev-content" style="display:none;">
+      <div class="card"><div class="card-title">控制台</div>
+        <div class="dev-section"><h3>⚙️ 修改参数</h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;">
+            <div><label style="color:var(--text-secondary);font-size:0.8em;">寿元</label><input type="number" class="dev-input" id="dev-lifespan" value="100"></div>
+            <div><label style="color:var(--text-secondary);font-size:0.8em;">灵石</label><input type="number" class="dev-input" id="dev-spirit-stones" value="0"></div>
+            <div><label style="color:var(--text-secondary);font-size:0.8em;">徒弟病娇值</label><input type="number" class="dev-input" id="dev-yandere" value="0"></div>
+          </div>
+          <button class="dev-btn" onclick="applyDevChanges()" style="margin-top:8px;">应用</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay"><div class="modal" id="modal-content"><button class="modal-close" onclick="closeModal()">✕</button><div id="modal-body"></div></div></div>
+<div class="music-toggle" id="music-toggle" onclick="toggleMobileMusic()">🎵</div>
+<div id="music-player">
+  <div class="music-title">🎵 仙乐坊</div>
+  <div class="music-controls">
+    <button class="music-btn" onclick="prevTrack()">⏮</button>
+    <button class="music-btn" id="play-btn" onclick="togglePlay()">▶</button>
+    <button class="music-btn" onclick="nextTrack()">⏭</button>
+    <div class="music-progress"><div class="music-progress-fill" id="music-progress-fill"></div></div>
+    <input type="range" class="music-volume" min="0" max="100" value="50" oninput="setVolume(this.value)">
+  </div>
+  <div class="music-track-name" id="track-name">未选择</div>
+</div>
+
+<script>
+// ============ 核心数据 (精简版，保留前版核心) ============
+const REALMS = {
+  fan: [{name:'练气',lifespan:120,desc:'入门',color:'realm-fan'},{name:'筑基',lifespan:200,desc:'凝基',color:'realm-fan'},{name:'金丹',lifespan:500,desc:'成丹',color:'realm-fan'},{name:'元婴',lifespan:1000,desc:'凡界顶点',color:'realm-fan'}],
+  ling: [{name:'化神',lifespan:3000,desc:'融神',color:'realm-ling'},{name:'炼虚',lifespan:8000,desc:'炼空',color:'realm-ling'},{name:'返虚',lifespan:20000,desc:'归真',color:'realm-ling'},{name:'合体',lifespan:50000,desc:'合道',color:'realm-ling'},{name:'大乘',lifespan:100000,desc:'灵界顶点',color:'realm-ling'}],
+  xian: [{name:'地仙',lifespan:1e6,desc:'初仙',color:'realm-xian'},{name:'天仙',lifespan:1e7,desc:'辟域',color:'realm-xian'},{name:'金仙',lifespan:1e8,desc:'不朽',color:'realm-xian'},{name:'太乙',lifespan:1e9,desc:'超脱',color:'realm-xian'},{name:'大罗',lifespan:1e10,desc:'万法不侵',color:'realm-xian'},{name:'道祖',lifespan:Infinity,desc:'万界顶点',color:'realm-dao'}]
+};
+const FAMILIES = [{name:'沈家',location:'南部',head:'沈南',heir:'沈冷月',desc:'左相，阴险'},{name:'余家',location:'北部',head:'余卫生',heir:'余幼薇',desc:'右相，权谋'},{name:'白家',location:'西部',head:'白城西',heir:'白凝冰',desc:'皇帝心腹'},{name:'楚家',location:'东部',head:'楚江海',heir:'楚山河',desc:'镇北王，兵权'}];
+const SECTS = {
+  top:[{name:'天魔宗',rank:'顶级',desc:'魔道第一'},{name:'琉璃阁',rank:'顶级',desc:'正道第一'},{name:'落云宗',rank:'顶级',desc:'剑修圣地'},{name:'合欢宗',rank:'顶级',desc:'全员女弟子'}],
+  first:[{name:'寒潭谷',rank:'一品',desc:'剑修'},{name:'百草谷',rank:'一品',desc:'丹药'}],
+  second:[{name:'幽影宗',rank:'二品',desc:'魔道幻术'},{name:'天机阁',rank:'二品',desc:'占卜'}],
+  third:[{name:'青云门',rank:'三品',desc:'中等宗门'}]
+};
+const CHARACTERS = {
+  females: [
+    {id:'shenqq',name:'沈清秋',title:'寒潭剑仙',type:'御姐',realm:'金丹后期'},
+    {id:'linxiaotang',name:'林小棠',title:'药谷小医仙',type:'萝莉',realm:'筑基大圆满'},
+    {id:'yeliuli',name:'夜琉璃',title:'魔教圣女',type:'熟女',realm:'元婴中期'},
+    {id:'chuwanxing',name:'楚晚星',title:'星阁阁主',type:'御姐',realm:'金丹中期'},
+    {id:'baiweiwei',name:'白薇薇',title:'花谷小师妹',type:'萝莉',realm:'筑基后期'}
+  ],
+  males: [
+    {id:'yanyun',name:'燕云',title:'十八骑之首',type:'冷面',realm:'元婴后期'},
+    {id:'suzimo',name:'苏子墨',title:'书生侠客',type:'温润',realm:'金丹后期'},
+    {id:'leihu',name:'雷虎',title:'莽撞大汉',type:'热血',realm:'筑基大圆满'}
+  ],
+  npcs: [{id:'tieguaili',name:'铁拐李',title:'神秘乞丐',type:'搞笑',realm:'深不可测'}]
+};
+const MAP_POINTS = [{name:'皇城',x:50,y:45,desc:'中心',type:'city'},{name:'寒潭谷',x:30,y:20,desc:'北境',type:'sect'},{name:'合欢宗',x:70,y:70,desc:'南疆',type:'sect'}];
+
+// ============ 师徒系统数据 (全新) ============
+const DISCIPLES_POOL = [
+  {
+    id: 'disc_muye', name: '慕夜', gender: 'male', age: 18, appearance: 18,
+    title: '白切黑小狼狗', realm: '练气九层',
+    personality: '表面乖巧听话、一口一个师尊，实则占有欲极强，暗中杀掉所有靠近师尊的人。',
+    cp_types: ['bl', 'gb', 'bg'], // 适配男玩家(BL/GB)，女玩家(BG)
+    base_yandere: 30, // 初始病娇值
+   暗恋_type: '徒弟暗恋师傅（病娇隐忍）',
+    dialogues: {
+      normal: '师尊，您今天辛苦了，徒儿给您泡了灵茶。',
+      happy: '师尊...只要您一直看着徒儿，徒儿什么都愿意做。',
+      yandere: '师尊，那个跟您说话的男修/女修...我已经让他永远闭嘴了。您只需要看着我就好，对吧？'
+    }
+  },
+  {
+    id: 'disc_linglong', name: '玲珑', gender: 'female', age: 16, appearance: 16,
+    title: '直球小太阳', realm: '筑基初期',
+    personality: '热情如火，明恋师傅，天天追着师傅贴贴，毫无保留地表达爱意。',
+    cp_types: ['gl', 'bg'], // 适配女玩家(GL)，男玩家(BG)
+    base_yandere: 5,
+    暗恋_type: '徒弟明恋师傅（直球忠犬）',
+    dialogues: {
+      normal: '师尊师尊！我今天练剑有进步哦！要抱抱奖励！',
+      happy: '我最喜欢师尊了！全天下最喜欢！比喜欢灵石还喜欢！',
+      yandere: '师尊如果不理玲珑的话...玲珑就把这洞府烧了，这样师尊就只能看着玲珑了！'
+    }
+  },
+  {
+    id: 'disc_guhan', name: '顾寒', gender: 'male', age: 22, appearance: 22,
+    title: '清冷傲娇大师兄', realm: '筑基大圆满',
+    personality: '天赋极高，嘴硬心软。明明很关心师傅却总是冷着脸，被夸奖会耳根发红。',
+    cp_types: ['bl', 'bg'],
+    base_yandere: 10,
+    暗恋_type: '徒弟暗恋师傅（傲娇隐忍）',
+    dialogues: {
+      normal: '...这是下山顺手买的桂花糕，不是特意给您的，别多想。',
+      happy: '（耳根通红）您、您别靠这么近...成何体统...（但没有躲开）',
+      yandere: '若您敢收别的徒弟...我便杀了他。我的师尊，只能有我一个徒弟。'
+    }
+  },
+  {
+    id: 'disc_youshang', name: '幽裳', gender: 'female', age: 20, appearance: 20,
+    title: '病娇腹黑魔女', realm: '金丹初期',
+    personality: '喜欢收集师傅的贴身物品，在洞府地下室建了一个“师尊 shrine”。极度危险。',
+    cp_types: ['gl', 'gb', 'bg'],
+    base_yandere: 50,
+    暗恋_type: '徒弟暗恋师傅（极度病娇）',
+    dialogues: {
+      normal: '师尊，您的头发掉了一根呢...（悄悄收进储物袋）',
+      happy: '师尊的味道...真好闻...如果能永远把师尊锁在身边就好了...',
+      yandere: '师尊，外面的世界太危险了。徒儿为您打造了玄铁锁链，以后您就待在地下室...啊不，待在洞府里，由徒儿来保护您吧？'
+    }
+  }
+];
+
+// ============ 游戏状态 ============
+let gameState = {
+  started:false, playerName:'无名', gender:'male', orientation:'bg', root:'triple',
+  realm:0, realmName:'凡人', exp:0, expMax:100, hp:100, hpMax:100, mp:50, mpMax:50,
+  age:16, lifespan:80, spiritStones:10, attack:10, defense:5, speed:5, luck:5, charm:5,
+  day:1, month:3, year:1024, season:'春', timeOfDay:'morning', timeName:'辰时',
+  currentScene:'intro', location:'皇城', events:[], choices:[], flags:{}, relations:{},
+  disciples: [], // 已收徒弟
+  turnCount:0
+};
+
+// ============ 场景数据 (含师徒互动) ============
+const SCENES = {
+  intro: {
+    text: `天元历1024年，春。\n\n你站在皇城门前。老乞丐铁拐李挡在你面前。\n\n{action|你的修仙之路，与羁绊之途，正式开启。|}`,
+    choices: [
+      { text:'【机智】反将一军', tag:'smart', next:'city_tavern', effects:{luck:2} },
+      { text:'【高冷】无视', tag:'cold', next:'city_tavern', effects:{charm:1} },
+      { text:'【舔狗】给干粮', tag:'lick', next:'city_tavern', effects:{charm:3,spiritStones:-2} }
+    ],
+    danmaku:['开局！','全性向支持好评！','我要收病娇徒弟！']
+  },
+  city_tavern: {
+    text: `你来到天香楼。\n\n{thought|修为尚浅，若能收个徒弟帮忙打理洞府，似乎也不错...|}\n\n你听说附近有几个资质不错的苗子正在寻找师尊。`,
+    choices: [
+      { text:'去寻访弟子 (进入洞府系统)', tag:'smart', next:'go_disciple', effects:{} },
+      { text:'继续打探消息', tag:'chill', next:'city_tavern', effects:{exp:5} },
+      { text:'潜心修炼', tag:'cold', next:'city_tavern', effects:{exp:20} }
+    ],
+    danmaku:['去收徒！','病娇徒弟我来了！','师傅暗恋徒弟线怎么走？']
+  }
+};
+
+// ============ 初始化 & 渲染 ============
+function createParticles() {
+  const c = document.getElementById('particles-bg');
+  const n = window.innerWidth < 768 ? 20 : 50;
+  for(let i=0;i<n;i++){const p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDuration=(5+Math.random()*10)+'s';p.style.animationDelay=Math.random()*5+'s';const s=(1+Math.random()*2)+'px';p.style.width=s;p.style.height=s;c.appendChild(p);}
+}
+function simulateLoading() {
+  const bar=document.getElementById('loading-bar'),text=document.getElementById('loading-text');
+  const steps=['凝聚灵气...','构建万界...','编织羁绊...','开启仙途...'];
+  let p=0;const iv=setInterval(()=>{p+=Math.random()*25;if(p>100)p=100;bar.style.width=p+'%';text.textContent=steps[Math.min(Math.floor(p/25),steps.length-1)];if(p>=100){clearInterval(iv);setTimeout(()=>document.getElementById('loading-screen').classList.add('hidden'),400);}},250);
+}
+
+function renderRealms() {
+  ['fan','ling','xian'].forEach(r=>{const g=document.getElementById(`realm-${r}-grid`);if(!g)return;g.innerHTML=REALMS[r].map(d=>`<div class="realm-item" onclick="showModal('<h2>${d.name}期</h2><p>${d.desc}</p><p>寿元:${d.lifespan===Infinity?'永恒':d.lifespan+'年'}</p>')"><span class="realm-level ${d.color}">${d.name}</span><strong style="color:var(--gold)">${d.name}</strong></div>`).join('');});
+}
+function renderFamilies() { document.getElementById('family-grid').innerHTML=FAMILIES.map(f=>`<div class="family-item" onclick="showModal('<h2>${f.name}</h2><p>${f.desc}</p>')"><strong style="color:var(--gold)">${f.name}</strong><p style="font-size:0.8em;color:var(--text-secondary)">${f.head} / ${f.heir}</p></div>`).join(''); }
+function renderSects() { ['top','first','second','third'].forEach(t=>{const g=document.getElementById(`sect-${t}-grid`);if(!g)return;g.innerHTML=SECTS[t].map(s=>`<div class="sect-item" onclick="showModal('<h2>${s.name}</h2><p>${s.desc}</p>')"><strong style="color:var(--gold)">${s.name}</strong><span class="realm-level realm-dao">${s.rank}</span></div>`).join('');}); }
+function renderCharacters() {
+  const colors=['#e74c3c','#3498db','#9b59b6','#2ecc71','#f39c12'];
+  const mk=(c,i,tc,tl)=>`<div class="char-card" onclick="showModal('<h2>${c.name}</h2><p>${c.title} | ${c.realm}</p>')"><div class="char-card-img" style="background:linear-gradient(135deg,${colors[i%5]}33,${colors[(i+2)%5]}33);color:${colors[i%5]}">${c.name[0]}</div><div class="char-card-info"><div class="char-card-name">${c.name}</div><div class="char-card-title">${c.title}</div></div><span class="char-card-type ${tc}">${tl}</span></div>`;
+  document.getElementById('female-grid').innerHTML=CHARACTERS.females.map((c,i)=>mk(c,i,'type-female','♀')).join('');
+  document.getElementById('male-grid').innerHTML=CHARACTERS.males.map((c,i)=>mk(c,i,'type-male','♂')).join('');
+  document.getElementById('npc-grid').innerHTML=CHARACTERS.npcs.map((c,i)=>mk(c,i,'type-npc','NPC')).join('');
+}
+function renderMap() {
+  const c=document.getElementById('map-container');const bg=c.querySelector('.map-bg-text');c.innerHTML='';c.appendChild(bg);
+  MAP_POINTS.forEach(p=>{const e=document.createElement('div');e.className='map-point';e.style.left=p.x+'%';e.style.top=p.y+'%';e.innerHTML=`<span class="map-point-label">${p.name}</span>`;e.onclick=()=>showModal(`<h2>${p.name}</h2><p>${p.desc}</p>`);c.appendChild(e);});
+}
+
+// ============ 师徒系统渲染 ============
+function renderRecruitGrid() {
+  const grid = document.getElementById('recruit-grid');
+  // 根据玩家性别和性向过滤徒弟
+  const pGender = gameState.gender;
+  const pOrient = gameState.orientation;
+  
+  let pool = DISCIPLES_POOL.filter(d => {
+    if (pOrient === 'all') return true;
+    // 简单的性向匹配逻辑
+    if (pGender === 'male') return (pOrient === 'bg' && d.gender === 'female') || (pOrient === 'bl' && d.gender === 'male') || (pOrient === 'gb' && d.gender === 'female');
+    if (pGender === 'female') return (pOrient === 'bg' && d.gender === 'male') || (pOrient === 'gl' && d.gender === 'female') || (pOrient === 'gb' && d.gender === 'male');
+    return true;
+  });
+
+  if (pool.length === 0) pool = DISCIPLES_POOL; // fallback
+
+  grid.innerHTML = pool.map(d => {
+    const cpTags = d.cp_types.map(t => `<span class="cp-tag cp-${t}">${t.toUpperCase()}</span>`).join('');
+    return `
+    <div class="disciple-card">
+      <div class="disciple-header">
+        <div class="disciple-avatar" style="color:${d.gender==='male'?'#3498db':'#e91e63'}">${d.name[0]}</div>
+        <div>
+          <div style="color:var(--gold);font-weight:bold;">${d.name} ${cpTags}</div>
+          <div style="font-size:0.8em;color:var(--text-secondary);">${d.title} | ${d.realm}</div>
+          <div style="font-size:0.75em;color:var(--text-dim);margin-top:4px;">${d.暗恋_type}</div>
+        </div>
+      </div>
+      <p style="font-size:0.85em;color:var(--text-secondary);margin-bottom:12px;">${d.personality}</p>
+      <p style="font-size:0.8em;color:var(--text-dim);margin-bottom:12px;">初始病娇值: <span style="color:${d.base_yandere>30?'#c0392b':'#2ecc71'}">${d.base_yandere}/100</span></p>
+      <button class="dev-btn" style="width:100%;justify-content:center;" onclick="recruitDisciple('${d.id}')">收入门下</button>
+    </div>`;
+  }).join('');
+}
+
+function renderMyDisciples() {
+  const list = document.getElementById('my-disciples-list');
+  if (gameState.disciples.length === 0) {
+    list.innerHTML = '<p style="text-align:center;color:var(--text-dim);padding:40px;">暂无徒弟，请前往「寻访收徒」。</p>';
+    return;
+  }
+
+  list.innerHTML = gameState.disciples.map(d => {
+    const isYandere = d.yandere >= 80;
+    const yandereColor = d.yandere >= 80 ? '#c0392b' : d.yandere >= 50 ? '#e67e22' : '#2ecc71';
+    
+    let currentDialogue = d.yandere >= 80 ? d.dialogues.yandere : (d.affection >= 50 ? d.dialogues.happy : d.dialogues.normal);
+    
+    return `
+    <div class="disciple-card ${isYandere ? 'yandere-active' : ''}" style="margin-bottom:16px;">
+      <div class="disciple-header">
+        <div class="disciple-avatar" style="color:${d.gender==='male'?'#3498db':'#e91e63'}; ${isYandere?'border-color:#c0392b;':''}">${d.name[0]}</div>
+        <div style="flex:1;">
+          <div style="color:var(--gold);font-weight:bold;">${d.name} <span style="font-size:0.8em;color:var(--text-secondary);">${d.realm}</span></div>
+          <div class="stat-bar" style="margin:6px 0 2px;">
+            <div class="stat-label"><span>❤️ 好感</span><span>${d.affection}/100</span></div>
+            <div class="stat-track"><div class="affection-fill" style="width:${d.affection}%"></div></div>
+          </div>
+          <div class="stat-bar stat-yandere">
+            <div class="stat-label"><span>🔪 病娇/黑化</span><span style="color:${yandereColor}">${d.yandere}/100</span></div>
+            <div class="stat-track"><div class="stat-fill" style="width:${d.yandere}%"></div></div>
+          </div>
+        </div>
+      </div>
+      
+      <div style="background:rgba(0,0,0,0.3);padding:12px;border-radius:8px;border-left:3px solid ${isYandere?'#c0392b':'var(--gold)'};margin-bottom:12px;">
+        <p style="font-size:0.9em;line-height:1.8;color:${isYandere?'#ff7675':'var(--text-primary)'};">
+          <strong style="color:var(--gold);">${d.name}：</strong>
+          "${currentDialogue}"
+        </p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;">
+        <div class="interact-btn" onclick="interactDisciple('${d.id}','teach')"><span class="icon">📖</span><span class="label">传道授业</span></div>
+        <div class="interact-btn" onclick="interactDisciple('${d.id}','gift')"><span class="icon">🎁</span><span class="label">赠送法宝</span></div>
+        <div class="interact-btn" onclick="interactDisciple('${d.id}','dual')"><span class="icon">💞</span><span class="label">双修/贴贴</span></div>
+        <div class="interact-btn" onclick="interactDisciple('${d.id}','scold')"><span class="icon">⚡</span><span class="label">严厉责罚</span></div>
+        <div class="interact-btn" onclick="interactDisciple('${d.id}','ignore')"><span class="icon">🚪</span><span class="label">闭关冷落</span></div>
+        <div class="interact-btn" onclick="interactDisciple('${d.id}','flirt')"><span class="icon">🌸</span><span class="label">反向撩拨</span></div>
+      </div>
+      
+      ${isYandere ? '<p style="color:#c0392b;font-size:0.8em;margin-top:10px;text-align:center;animation:yanderePulse 1s infinite;">⚠ 警告：该徒弟已处于极度危险状态，可能触发「小黑屋」结局！</p>' : ''}
+    </div>`;
+  }).join('');
+}
+
+function recruitDisciple(id) {
+  const template = DISCIPLES_POOL.find(d => d.id === id);
+  if (!template) return;
+  if (gameState.disciples.find(d => d.id === id)) {
+    showNotification('❌ 你已经收过这个徒弟了！');
+    return;
+  }
+  
+  const newDisc = {
+    ...template,
+    affection: 20,
+    yandere: template.base_yandere,
+    memories: []
+  };
+  gameState.disciples.push(newDisc);
+  showNotification(`✅ 成功收徒：${template.name}！`);
+  addDanmaku(`【${gameState.playerName}】收下了${template.name}为徒！`);
+  renderMyDisciples();
+  
+  // 自动切换到管理页
+  document.querySelectorAll('#page-disciple .tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#page-disciple .tab-content').forEach(c=>c.classList.remove('active'));
+  document.querySelector('#page-disciple .tab-btn[data-tab="disciple-manage"]').classList.add('active');
+  document.getElementById('disciple-manage').classList.add('active');
+}
+
+function interactDisciple(id, action) {
+  const disc = gameState.disciples.find(d => d.id === id);
+  if (!disc) return;
+
+  let msg = '';
+  let affChange = 0;
+  let yanChange = 0;
+
+  switch(action) {
+    case 'teach':
+      affChange = 5 + Math.floor(Math.random()*5);
+      yanChange = -2;
+      msg = `你悉心教导${disc.name}，ta的修为有所精进，看向你的眼神更加崇拜了。`;
+      break;
+    case 'gift':
+      if (gameState.spiritStones < 10) { showNotification('❌ 灵石不足(需要10)'); return; }
+      gameState.spiritStones -= 10;
+      affChange = 15;
+      yanChange = disc.base_yandere > 30 ? 10 : 5; // 病娇收到礼物会更想占有
+      msg = `你赠送了一件法宝。${disc.name}紧紧抱着法宝，仿佛抱着你一样，眼神有些狂热。`;
+      break;
+    case 'dual':
+      affChange = 20;
+      yanChange = 15; // 身体接触大幅增加病娇值
+      msg = `你们进行了双修/亲密贴贴。${disc.name}的脸红得像滴血，ta紧紧抓着你的衣角不肯松开。`;
+      break;
+    case 'scold':
+      affChange = -10;
+      yanChange = disc.personality.includes('病娇') ? 20 : 5; // 病娇被骂反而会兴奋/扭曲
+      msg = `你严厉责罚了${disc.name}。ta低着头，你看不清ta的表情，但隐约听到了一声诡异的轻笑...`;
+      break;
+    case 'ignore':
+      affChange = -15;
+      yanChange = 25; // 冷落是触发黑化的最快途径
+      msg = `你闭门不见${disc.name}。门外传来了指甲抓挠石门的声音，以及低声的呢喃：“师尊...为什么不理我...”`;
+      break;
+    case 'flirt':
+      affChange = 25;
+      yanChange = 20; // 师傅反向撩拨，徒弟直接疯了
+      msg = `你主动撩拨了${disc.name}。ta的瞳孔瞬间放大，呼吸变得急促，看你的眼神仿佛要将你吞吃入腹。`;
+      break;
+  }
+
+  disc.affection = Math.max(0, Math.min(100, disc.affection + affChange));
+  disc.yandere = Math.max(0, Math.min(100, disc.yandere + yanChange));
+  disc.memories.push({action, affChange, yanChange, time: gameState.timeName});
+
+  showNotification(msg);
+  addEventLog(`[师徒] ${msg}`);
+  
+  // 检查黑化结局
+  if (disc.yandere >= 100) {
+    triggerYandereEnding(disc);
+  } else {
+    renderMyDisciples();
+  }
+}
+
+function triggerYandereEnding(disc) {
+  const modalBody = document.getElementById('modal-body');
+  modalBody.innerHTML = `
+    <h2 style="color:#c0392b;">⚠ 结局触发：金丝雀之笼 ⚠</h2>
+    <p style="line-height:2;margin-top:15px;">
+      你从昏迷中醒来，发现自己身处一个陌生的密室。<br>
+      手腕和脚踝上绑着冰冷的玄铁锁链，锁链的另一端固定在墙上。<br><br>
+      ${disc.name} 坐在床边，手里把玩着你平时佩戴的玉佩，脸上带着病态而痴迷的笑容。<br><br>
+      <span style="color:#e74c3c;font-weight:bold;">“师尊，您终于醒了。”</span><br>
+      <span style="color:#e74c3c;">“外面的世界太危险了，总有不知死活的虫子想要靠近您。”</span><br>
+      <span style="color:#e74c3c;">“所以，徒儿把您藏起来了。从今往后，您只能看到徒儿，只能听到徒儿的声音，只能...属于徒儿一个人。”</span><br><br>
+      <em style="color:var(--text-dim);">—— 达成病娇结局：【${disc.name}的专属禁脔】 ——</em>
+    </p>
+    <button class="dev-btn" style="margin-top:20px;width:100%;justify-content:center;" onclick="closeModal()">接受命运 (关闭)</button>
+  `;
+  document.getElementById('modal-overlay').classList.add('show');
+  addDanmaku(`前方高能！！！${disc.name}黑化了！！！`);
+  addDanmaku('小黑屋结局达成！');
+  addDanmaku('救命啊师傅被关起来了！');
+}
+
+// ============ 游戏引擎 (精简) ============
+function startGame() {
+  gameState.started=true;
+  gameState.playerName=document.getElementById('player-name-input').value.trim()||'无名';
+  gameState.gender=document.getElementById('player-gender').value;
+  gameState.orientation=document.getElementById('player-orientation').value;
+  gameState.root=document.getElementById('player-root').value;
+  const mt={'single-fire':{m:2,l:120},'dual':{m:1.5,l:120},'triple':{m:1.2,l:100},'penta':{m:0.5,l:80}}[gameState.root]||{m:1.2,l:100};
+  gameState.lifespan=mt.l; gameState.expMultiplier=mt.m;
+  document.getElementById('game-start-screen').style.display='none';
+  document.getElementById('game-play-area').style.display='block';
+  CHARACTERS.females.forEach(c=>{gameState.relations[c.id]={affection:0,alertness:0,met:false};});
+  renderPlayerStats(); renderAffectionPanel(); loadScene('intro'); startDanmakuLoop();
+}
+function renderPlayerStats() {
+  document.getElementById('player-stats').innerHTML=`<div style="text-align:center;margin-bottom:8px;"><div style="color:var(--gold);">${gameState.playerName}</div><div style="color:var(--text-dim);font-size:0.78em;">${gameState.realmName} | ${gameState.orientation.toUpperCase()}</div></div><div class="stat-bar stat-hp"><div class="stat-label"><span>气血</span><span>${gameState.hp}/${gameState.hpMax}</span></div><div class="stat-track"><div class="stat-fill" style="width:${(gameState.hp/gameState.hpMax)*100}%"></div></div></div><div class="stat-bar stat-exp"><div class="stat-label"><span>修为</span><span>${gameState.exp}/${gameState.expMax}</span></div><div class="stat-track"><div class="stat-fill" style="width:${(gameState.exp/gameState.expMax)*100}%"></div></div></div><div class="stat-bar stat-life"><div class="stat-label"><span>寿元</span><span>${gameState.age}/${gameState.lifespan}</span></div><div class="stat-track"><div class="stat-fill" style="width:${((gameState.lifespan-gameState.age)/gameState.lifespan)*100}%"></div></div></div><div style="font-size:0.78em;color:var(--text-secondary);margin-top:8px;">灵石: <span style="color:var(--gold)">${gameState.spiritStones}</span></div>`;
+}
+function renderAffectionPanel() {
+  document.getElementById('affection-panel').innerHTML=CHARACTERS.females.slice(0,3).map(c=>{const r=gameState.relations[c.id]||{affection:0};return `<div class="affection-item"><div class="affection-info"><div class="affection-name">${c.name}</div><div class="affection-bar"><div class="affection-fill" style="width:${(r.affection+50)/1.5}%"></div></div></div></div>`;}).join('');
+}
+function loadScene(id) {
+  const s=SCENES[id]; if(!s){return;}
+  gameState.currentScene=id; gameState.turnCount++;
+  const el=document.getElementById('game-narrative');
+  el.innerHTML=s.text.replace(/\{highlight\|([^}]+)\}/g,'<span class="highlight">$1</span>').replace(/\{action\|([^}]+)\}/g,'<span class="action">$1</span>').replace(/\{thought\|([^}]+)\}/g,'<span class="thought">$1</span>');
+  const ch=document.getElementById('choices-container'); ch.innerHTML='';
+  if(s.choices) s.choices.forEach(c=>{const b=document.createElement('div');b.className='choice-btn';b.innerHTML=`<span class="choice-tag tag-${c.tag}">${c.tag}</span>${c.text}`;b.onclick=()=>{if(c.effects){if(c.effects.exp)gameState.exp+=c.effects.exp;if(c.effects.spiritStones)gameState.spiritStones+=c.effects.spiritStones;if(c.effects.luck)gameState.luck+=c.effects.luck;if(c.effects.charm)gameState.charm+=c.effects.charm;} if(c.next==='go_disciple'){switchPage('disciple');}else{loadScene(c.next);} renderPlayerStats();};ch.appendChild(b);});
+  if(s.danmaku) s.danmaku.forEach((d,i)=>setTimeout(()=>addDanmakuToPanel(d),i*800));
+  el.scrollTop=0;
+}
+function submitCustomAnswer() { const t=document.getElementById('custom-answer-input').value.trim(); if(!t)return; addDanmaku(`玩家:${t}`); document.getElementById('custom-answer-input').value=''; document.getElementById('custom-input-area').style.display='none'; }
+
+function addDanmaku(t) { const c=document.getElementById('danmaku-container');const e=document.createElement('div');e.className='danmaku';e.textContent=t;e.style.top=(10+Math.random()*60)+'%';e.style.color=`hsl(${Math.random()*60+30},80%,70%)`;e.style.animationDuration=(8+Math.random()*5)+'s';c.appendChild(e);setTimeout(()=>e.remove(),15000); }
+function addDanmakuToPanel(t) { const p=document.getElementById('danmaku-panel');const e=document.createElement('div');e.className='danmaku-item';e.innerHTML=`<span class="danmaku-user">路人:</span>${t}`;p.appendChild(e);p.scrollTop=p.scrollHeight; }
+function startDanmakuLoop() { setInterval(()=>{if(gameState.started&&Math.random()>0.5)addDanmaku(['病娇徒弟太香了！','师傅反向撩拨绝了','小黑屋警告！','全性向好评！'][Math.floor(Math.random()*4)])},5000); }
+function addEventLog(t) { const l=document.getElementById('event-log');if(!l)return;const e=document.createElement('div');e.style.cssText='padding:4px 0;border-bottom:1px solid rgba(212,168,67,0.1);';e.innerHTML=t;l.appendChild(e);l.scrollTop=l.scrollHeight; }
+
+// ============ 存档 & 开发者 ============
+function quickSave() { if(!gameState.started){showNotification('❌ 未开始');return;} localStorage.setItem('xiantu_save_0',JSON.stringify({...gameState,savedAt:new Date().toLocaleString()})); showNotification('✅ 已存档'); renderSaveSlots(); }
+function quickLoad() { const d=localStorage.getItem('xiantu_save_0'); if(!d){showNotification('❌ 无存档');return;} Object.assign(gameState,JSON.parse(d)); document.getElementById('game-start-screen').style.display='none'; document.getElementById('game-play-area').style.display='block'; renderPlayerStats(); renderAffectionPanel(); renderMyDisciples(); loadScene(gameState.currentScene); showNotification('✅ 已读档'); switchPage('game'); }
+function saveToSlot(s) { quickSave(); }
+function loadSave(s) { quickLoad(); }
+function exportSave() { if(!gameState.started)return; const b=new Blob([JSON.stringify(gameState)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='xiantu.json';a.click(); }
+function importSave() { const i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{Object.assign(gameState,JSON.parse(ev.target.result));gameState.started=true;document.getElementById('game-start-screen').style.display='none';document.getElementById('game-play-area').style.display='block';renderPlayerStats();renderMyDisciples();loadScene(gameState.currentScene);};r.readAsText(f);};i.click(); }
+function renderSaveSlots() { const c=document.getElementById('save-slots');let h='';for(let i=1;i<=6;i++){const d=localStorage.getItem(`xiantu_save_${i}`);h+=d?`<div class="save-slot" onclick="loadSave(${i})"><div class="save-slot-info"><strong>存档${i}</strong>${JSON.parse(d).savedAt||''}</div></div>`:`<div class="save-slot" onclick="saveToSlot(${i})"><div class="save-slot-empty">空</div></div>`;}c.innerHTML=h; }
+function devLogin() { if(document.getElementById('dev-password').value==='456789'){document.getElementById('dev-login-card').style.display='none';document.getElementById('dev-content').style.display='block';showNotification('✅ 开发者模式');}else{showNotification('❌ 密码错误');} }
+function applyDevChanges() { if(!gameState.started)return; gameState.lifespan=parseInt(document.getElementById('dev-lifespan').value)||100; gameState.spiritStones=parseInt(document.getElementById('dev-spirit-stones').value)||0; const y=parseInt(document.getElementById('dev-yandere').value); if(gameState.disciples.length>0 && !isNaN(y)) gameState.disciples[0].yandere=Math.max(0,Math.min(100,y)); renderPlayerStats(); renderMyDisciples(); showNotification('✅ 已应用'); }
+
+// ============ 音乐 & 工具 ============
+let audioCtx=null,isPlaying=false,trackIdx=0,osc=null,gain=null;
+const TRACKS=[{n:'仙府',f:432,t:'sine'},{n:'魔域',f:288,t:'sawtooth'}];
+function initAudio(){audioCtx=new(window.AudioContext||window.webkitAudioContext)();gain=audioCtx.createGain();gain.gain.value=0.05;gain.connect(audioCtx.destination);}
+function togglePlay(){if(!audioCtx)initAudio();if(isPlaying){if(osc){osc.stop();osc=null;}isPlaying=false;document.getElementById('play-btn').textContent='▶';}else{playTrack(trackIdx);isPlaying=true;document.getElementById('play-btn').textContent='⏸';}}
+function playTrack(i){if(!audioCtx)initAudio();if(osc)osc.stop();const t=TRACKS[i];osc=audioCtx.createOscillator();osc.type=t.t;osc.frequency.value=t.f;osc.connect(gain);osc.start();document.getElementById('track-name').textContent=`♪ ${t.n}`;}
+function nextTrack(){trackIdx=(trackIdx+1)%TRACKS.length;if(isPlaying)playTrack(trackIdx);}
+function prevTrack(){trackIdx=(trackIdx-1+TRACKS.length)%TRACKS.length;if(isPlaying)playTrack(trackIdx);}
+function setVolume(v){if(gain)gain.gain.value=v/1000;}
+function showNotification(t){const e=document.createElement('div');e.className='notification';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),3000);}
+function showModal(c){document.getElementById('modal-body').innerHTML=c;document.getElementById('modal-overlay').classList.add('show');}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('show');}
+function switchPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-link').forEach(n=>n.classList.remove('active'));document.getElementById(`page-${id}`).classList.add('active');document.querySelectorAll(`.nav-link[data-page="${id}"]`).forEach(n=>n.classList.add('active'));if(id==='save')renderSaveSlots();if(id==='disciple'){renderRecruitGrid();renderMyDisciples();}document.getElementById('mobile-menu').classList.remove('show');document.getElementById('hamburger-btn').classList.remove('open');}
+function toggleMobileMusic(){document.getElementById('music-player').classList.toggle('mobile-show');}
+
+// ============ DOM Ready ============
+document.addEventListener('DOMContentLoaded',()=>{
+  createParticles();simulateLoading();renderRealms();renderFamilies();renderSects();renderCharacters();renderMap();
+  document.querySelectorAll('.nav-link').forEach(l=>l.addEventListener('click',()=>switchPage(l.dataset.page)));
+  document.getElementById('hamburger-btn').addEventListener('click',function(){this.classList.toggle('open');document.getElementById('mobile-menu').classList.toggle('show');});
+  document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>{const p=b.closest('.tab-container');p.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));p.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById(b.dataset.tab).classList.add('active');}));
+  document.querySelectorAll('.game-mobile-tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.game-mobile-tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');const id=t.dataset.panel;document.querySelectorAll('.game-panel').forEach(p=>{p.classList.remove('mobile-active');if(window.innerWidth<=1024)p.style.display='none';});const el=document.getElementById(id);if(el){el.classList.add('mobile-active');el.style.display='block';}}));
+  document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+  document.getElementById('dev-password').addEventListener('keydown',e=>{if(e.key==='Enter')devLogin();});
+  document.getElementById('main-content').addEventListener('click',()=>{document.getElementById('mobile-menu').classList.remove('show');document.getElementById('hamburger-btn').classList.remove('open');});
+});
+</script>
+</body>
+</html>
